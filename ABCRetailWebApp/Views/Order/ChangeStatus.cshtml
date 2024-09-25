@@ -1,0 +1,41 @@
+﻿@model ABCRetailWebApp.Models.Order
+
+@{
+    ViewData["Title"] = "Change Order Status";
+}
+
+<h2>Change Order Status</h2>
+
+<!-- Display Validation Errors -->
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState.Count > 0)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- Form to Change Order Status -->
+<form asp-action="ChangeStatus" method="post">
+    <div class="form-group">
+        <label asp-for="Status" class="control-label">Order Status</label>
+        <select asp-for="Status" class="form-control">
+            <option>Pending</option>
+            <option>Shipped</option>
+            <option>Delivered</option>
+            <option>Cancelled</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Change Status</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

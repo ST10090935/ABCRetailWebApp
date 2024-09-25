@@ -1,0 +1,47 @@
+﻿@model ABCRetailWebApp.Models.Order
+
+@{
+    ViewData["Title"] = "Create Order";
+    var products = ViewBag.Products as List<ABCRetailWebApp.Models.Product>;
+}
+
+<h2>Create Order</h2>
+
+<form asp-action="CreateOrder" method="post">
+    <input type="hidden" asp-for="CustomerId" />
+    <input type="hidden" asp-for="CustomerName" value="@ViewBag.CustomerName" />
+    <input type="hidden" asp-for="CustomerEmail" value="@ViewBag.CustomerEmail" />
+    <input type="hidden" asp-for="DeliveryAddress" value="@ViewBag.DeliveryAddress" />
+
+    <div class="form-group">
+        <label asp-for="CustomerName" class="control-label">Customer Name</label>
+        <input asp-for="CustomerName" class="form-control" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CustomerEmail" class="control-label">Customer Email</label>
+        <input asp-for="CustomerEmail" class="form-control" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DeliveryAddress" class="control-label">Delivery Address</label>
+        <input asp-for="DeliveryAddress" class="form-control" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ProductIds" class="control-label">Select Products</label>
+        <select asp-for="ProductIds" class="form-control" multiple>
+            @foreach (var product in products)
+            {
+                <option value="@product.id">@product.Name - @product.Price</option>
+            }
+        </select>
+        <span asp-validation-for="ProductIds" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Order</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

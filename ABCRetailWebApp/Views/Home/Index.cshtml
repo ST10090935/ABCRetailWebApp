@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<h2>Welcome to ABC Retail</h2>
+
+<p>
+    To place an order, please register or log in as a customer.
+</p>
+
+<a asp-controller="Customer" asp-action="Register" class="btn btn-primary">Register as Customer</a>
+<a asp-controller="Customer" asp-action="Login" class="btn btn-secondary">Customer Login</a>
+
+<hr />
+
+<h3>Admin Options</h3>
+<p>
+    If you are an administrator, please register or log in to manage products.
+</p>
+
+<a asp-controller="Admin" asp-action="Register" class="btn btn-secondary">Register as Admin</a>
+<a asp-controller="Admin" asp-action="Login" class="btn btn-secondary">Admin Login</a>

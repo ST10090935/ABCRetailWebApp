@@ -1,0 +1,47 @@
+﻿@model List<ABCRetailWebApp.Models.Product>
+
+@{
+    ViewData["Title"] = "Manage Products";
+}
+
+<h2>Manage Products</h2>
+
+<p>
+    <a asp-action="CreateProduct" class="btn btn-success">Add New Product</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Description</td>
+                <td>@product.Price.ToString("C")</td> <!-- Display price in currency format -->
+                <td>
+                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                    {
+                        <img src="@product.ImageUrl" alt="@product.Name" style="width: 100px;" />
+                    }
+                    else
+                    {
+                        <span>No image</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="EditProduct" asp-route-id="@product.id" class="btn btn-warning">Edit</a> <!-- Corrected to use 'Id' -->
+                    <a asp-action="DeleteProduct" asp-route-id="@product.id" class="btn btn-danger">Delete</a> <!-- Corrected to use 'Id' -->
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

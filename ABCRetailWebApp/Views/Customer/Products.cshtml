@@ -1,0 +1,49 @@
+﻿@model List<ABCRetailWebApp.Models.Product>
+
+@{
+    ViewData["Title"] = "Product Catalog";
+}
+
+<h2>Product Catalog</h2>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No products available at the moment.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Image</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Price.ToString("C")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" alt="@product.Name" style="width: 100px;" />
+                        }
+                        else
+                        {
+                            <span>No image available</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Order" asp-route-productId="@product.id" class="btn btn-primary">Order Now</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

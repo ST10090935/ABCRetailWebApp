@@ -1,0 +1,54 @@
+﻿@model ABCRetailWebApp.Models.Order
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<h2>Create Order</h2>
+
+<form asp-action="CreateOrder" method="post">
+    <input type="hidden" asp-for="Products[0].id" />
+    <input type="hidden" asp-for="Products[0].Name" />
+    <input type="hidden" asp-for="Products[0].Description" />
+    <input type="hidden" asp-for="Products[0].Price" />
+    <input type="hidden" asp-for="Products[0].ImageUrl" />
+
+    <div class="form-group">
+        <label asp-for="CustomerName" class="control-label"></label>
+        <input asp-for="CustomerName" class="form-control" required />
+        <span asp-validation-for="CustomerName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CustomerEmail" class="control-label"></label>
+        <input asp-for="CustomerEmail" class="form-control" type="email" required />
+        <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DeliveryAddress" class="control-label"></label>
+        <input asp-for="DeliveryAddress" class="form-control" required />
+        <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Selected Product</label>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@Model.Products[0].Name</h5>
+                <p class="card-text">@Model.Products[0].Description</p>
+                <p class="card-text">Price: @Model.Products[0].Price.ToString("C")</p>
+                @if (!string.IsNullOrEmpty(Model.Products[0].ImageUrl))
+                {
+                    <img src="@Model.Products[0].ImageUrl" alt="@Model.Products[0].Name" style="width: 150px;" />
+                }
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Place Order</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

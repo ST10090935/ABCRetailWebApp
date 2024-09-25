@@ -1,0 +1,33 @@
+﻿@model ABCRetailWebApp.Models.Customer
+
+@{
+    ViewData["Title"] = "Customer Login";
+}
+
+<h2>Customer Login</h2>
+
+<form asp-controller="Customer" asp-action="Login" method="post">
+    @Html.AntiForgeryToken() <!-- Ensure CSRF protection -->
+    <div class="form-group">
+        <label asp-for="Username" class="control-label"></label>
+        <input asp-for="Username" class="form-control" required />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" type="password" required />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

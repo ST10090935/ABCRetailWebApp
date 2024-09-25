@@ -1,0 +1,41 @@
+﻿@model ABCRetailWebApp.Models.Order
+
+@{
+    ViewData["Title"] = "Order Status";
+}
+
+<h2>Order Status</h2>
+
+<!-- Display Order Details -->
+<div class="order-details">
+    <h4>Order Details</h4>
+    <p><strong>Order ID:</strong> @Model.id</p>
+    <p><strong>Customer ID:</strong> @Model.CustomerId</p>
+    <p><strong>Customer Name:</strong> @Model.CustomerName</p>
+    <p><strong>Customer Email:</strong> @Model.CustomerEmail</p>
+    <p><strong>Order Date:</strong> @Model.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")</p>
+    <p><strong>Delivery Address:</strong> @Model.DeliveryAddress</p> <!-- Correctly access DeliveryAddress -->
+    <p><strong>Status:</strong> @Model.Status.ToString()</p>
+</div>
+
+<!-- Form to Change Order Status -->
+<form asp-action="ChangeStatus" method="post">
+    <input type="hidden" asp-for="id" />
+    <div class="form-group">
+        <label asp-for="Status" class="control-label">Order Status</label>
+        <select asp-for="Status" class="form-control">
+            <option value="Pending">Pending</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Change Status</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
