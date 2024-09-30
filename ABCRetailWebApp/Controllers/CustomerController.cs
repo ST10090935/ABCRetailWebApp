@@ -1,14 +1,10 @@
-﻿// File: Controllers/CustomerController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ABCRetailWebApp.Models;
 using ABCRetailWebApp.Services;
 using Microsoft.Azure.Cosmos;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
-using System;
 
 namespace ABCRetailWebApp.Controllers
 {
@@ -46,59 +42,20 @@ namespace ABCRetailWebApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Registration failed: Invalid ModelState");
                 return View(customer);
             }
 
             try
             {
-                // Check if username already exists
-                var usernameQuery = "SELECT * FROM c WHERE c.Username = @username";
-                var queryDefinition = new QueryDefinition(usernameQuery)
-                    .WithParameter("@username", customer.Username);
-
-                var queryIterator = _customerContainer.Instance.GetItemQueryIterator<Customer>(queryDefinition);
-                var existingCustomers = new List<Customer>();
-
-                while (queryIterator.HasMoreResults)
-                {
-                    var response = await queryIterator.ReadNextAsync();
-                    existingCustomers.AddRange(response);
-                }
-
-                if (existingCustomers.Any())
-                {
-                    ModelState.AddModelError("Username", "Username is already taken.");
-                    _logger.LogWarning("Registration failed: Username '{Username}' is already taken.", customer.Username);
-                    return View(customer);
-                }
-
-                // Assign a new ID to the customer if it's not set (already handled by model's default)
-                if (string.IsNullOrEmpty(customer.id))
-                {
-                    customer.id = Guid.NewGuid().ToString();
-                }
-
-                // Hash the password before storing
-                customer.Password = BCrypt.Net.BCrypt.HashPassword(customer.Password);
-
                 // Create the customer in Cosmos DB
                 await _customerContainer.Instance.CreateItemAsync(customer, new PartitionKey(customer.id));
-
                 TempData["Message"] = "Customer registered successfully!";
-                _logger.LogInformation("Customer '{Username}' registered successfully.", customer.Username);
-                return RedirectToAction("Login");
+                return RedirectToAction("Login"); // Redirect to login after registration
             }
             catch (CosmosException ex)
             {
-                _logger.LogError(ex, "Cosmos DB error while creating customer.");
+                _logger.LogError(ex, "Error creating customer.");
                 ViewBag.ErrorMessage = $"Error creating customer: {ex.Message}";
-                return View("Error");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during customer registration.");
-                ViewBag.ErrorMessage = "An unexpected error occurred. Please try again.";
                 return View("Error");
             }
         }
@@ -125,59 +82,39 @@ namespace ABCRetailWebApp.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Login failed: Invalid ModelState");
-                _logger.LogWarning($"Errors: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))}");
+                _logger.LogWarning($"Errors: {string.Join(",", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))}");
                 return View(customer);
             }
 
-            try
+            // Use parameterized query to prevent SQL injection
+            var query = "SELECT * FROM c WHERE c.Username = @username AND c.Password = @password";
+            var queryDefinition = new QueryDefinition(query)
+                .WithParameter("@username", customer.Username)
+                .WithParameter("@password", customer.Password);
+
+            var queryIterator = _customerContainer.Instance.GetItemQueryIterator<Customer>(queryDefinition);
+            var customers = new List<Customer>();
+
+            while (queryIterator.HasMoreResults)
             {
-                // Use parameterized query to prevent SQL injection
-                var query = "SELECT * FROM c WHERE c.Username = @username";
-                var queryDefinition = new QueryDefinition(query)
-                    .WithParameter("@username", customer.Username);
-
-                var queryIterator = _customerContainer.Instance.GetItemQueryIterator<Customer>(queryDefinition);
-                var customers = new List<Customer>();
-
-                while (queryIterator.HasMoreResults)
-                {
-                    var response = await queryIterator.ReadNextAsync();
-                    customers.AddRange(response);
-                }
-
-                if (customers.Count > 0)
-                {
-                    var storedHashedPassword = customers.First().Password;
-                    bool isPasswordValid = BCrypt.Net.BCrypt.Verify(customer.Password, storedHashedPassword);
-
-                    if (isPasswordValid)
-                    {
-                        // Set session values correctly
-                        HttpContext.Session.SetString("CustomerLoggedIn", "true");
-                        HttpContext.Session.SetString("CustomerId", customers.First().id);
-                        HttpContext.Session.SetString("CustomerName", customers.First().Name);
-
-                        _logger.LogInformation("User '{Username}' logged in successfully.", customer.Username);
-                        return RedirectToAction("Products");
-                    }
-                }
-
-                ViewBag.ErrorMessage = "Invalid username or password.";
-                _logger.LogWarning("Login failed for Username: {Username}", customer.Username);
-                return View(customer);
+                var response = await queryIterator.ReadNextAsync();
+                customers.AddRange(response);
             }
-            catch (CosmosException ex)
+
+            if (customers.Count > 0)
             {
-                _logger.LogError(ex, "Cosmos DB error during customer login.");
-                ViewBag.ErrorMessage = "An unexpected error occurred while logging in. Please try again.";
-                return View("Error");
+                // Set session values correctly
+                HttpContext.Session.SetString("CustomerLoggedIn", "true");
+                HttpContext.Session.SetString("CustomerId", customers[0].id);
+                HttpContext.Session.SetString("CustomerName", customers[0].Name);
+
+                _logger.LogInformation("User {Username} logged in successfully.", customer.Username);
+                return RedirectToAction("Products");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during customer login.");
-                ViewBag.ErrorMessage = "An unexpected error occurred. Please try again.";
-                return View("Error");
-            }
+
+            ViewBag.ErrorMessage = "Invalid username or password.";
+            _logger.LogWarning("Login failed for Username: {Username}", customer.Username);
+            return View(customer);
         }
 
         // GET: /customer/products
@@ -189,33 +126,18 @@ namespace ABCRetailWebApp.Controllers
                 return RedirectToAction("Login");  // Redirect to login if not logged in
             }
 
-            try
-            {
-                // Fetch available products
-                var query = "SELECT * FROM c";
-                var iterator = _productContainer.Instance.GetItemQueryIterator<Product>(query);
-                var products = new List<Product>();
+            // Fetch available products
+            var query = "SELECT * FROM c";
+            var iterator = _productContainer.Instance.GetItemQueryIterator<Product>(query);
+            var products = new List<Product>();
 
-                while (iterator.HasMoreResults)
-                {
-                    var response = await iterator.ReadNextAsync();
-                    products.AddRange(response);
-                }
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                products.AddRange(response);
+            }
 
-                return View(products);  // Pass products to the view
-            }
-            catch (CosmosException ex)
-            {
-                _logger.LogError(ex, "Cosmos DB error while fetching products.");
-                ViewBag.ErrorMessage = "An unexpected error occurred while fetching products.";
-                return View("Error");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error while fetching products.");
-                ViewBag.ErrorMessage = "An unexpected error occurred. Please try again.";
-                return View("Error");
-            }
+            return View(products);  // Pass products to the view
         }
 
         // GET: /customer/order/{productId}
@@ -253,18 +175,6 @@ namespace ABCRetailWebApp.Controllers
                 ViewBag.ErrorMessage = "Product not found.";
                 return View("Error");
             }
-            catch (CosmosException ex)
-            {
-                _logger.LogError(ex, "Cosmos DB error while fetching product with ID: {ProductId}", productId);
-                ViewBag.ErrorMessage = "An unexpected error occurred while fetching the product.";
-                return View("Error");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during order creation.");
-                ViewBag.ErrorMessage = "An unexpected error occurred. Please try again.";
-                return View("Error");
-            }
         }
 
         // POST: /customer/order
@@ -277,34 +187,20 @@ namespace ABCRetailWebApp.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid order creation attempt for CustomerId: {CustomerId}", order.CustomerId);
-                return View("Order", order); // Return to Order view with existing data
+                return View(order);
             }
 
             try
             {
-                // Assign a new ID to the order if it's not set
-                if (string.IsNullOrEmpty(order.id))
-                {
-                    order.id = Guid.NewGuid().ToString();
-                }
-
                 // Save the order to Azure Cosmos DB
                 await _orderContainer.Instance.CreateItemAsync(order, new PartitionKey(order.CustomerId));
-
                 TempData["Message"] = "Order created successfully!";
-                _logger.LogInformation("Order '{OrderId}' created successfully for CustomerId: {CustomerId}", order.id, order.CustomerId);
                 return RedirectToAction("Products");
             }
             catch (CosmosException ex)
             {
-                _logger.LogError(ex, "Cosmos DB error while creating order.");
+                _logger.LogError(ex, "Error creating order.");
                 ViewBag.ErrorMessage = $"Error creating order: {ex.Message}";
-                return View("Error");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during order creation.");
-                ViewBag.ErrorMessage = "An unexpected error occurred. Please try again.";
                 return View("Error");
             }
         }
@@ -314,7 +210,6 @@ namespace ABCRetailWebApp.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear(); // Clear all session data
-            _logger.LogInformation("Customer logged out.");
             return RedirectToAction("Index", "Home");
         }
     }

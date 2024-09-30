@@ -26,7 +26,7 @@
             <tr>
                 <td>@product.Name</td>
                 <td>@product.Description</td>
-                <td>@product.Price.ToString("C")</td>
+                <td>@product.Price.ToString("C")</td> <!-- Display price in currency format -->
                 <td>
                     @if (!string.IsNullOrEmpty(product.ImageUrl))
                     {
@@ -38,13 +38,8 @@
                     }
                 </td>
                 <td>
-                    <a asp-action="EditProduct" asp-route-id="@product.id" class="btn btn-warning">Edit</a>
-
-                    <form asp-action="DeleteProduct" asp-controller="Admin" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@product.id" />
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
+                    <a asp-action="EditProduct" asp-route-id="@product.id" class="btn btn-warning">Edit</a> <!-- Corrected to use 'Id' -->
+                    <a asp-action="DeleteProduct" asp-route-id="@product.id" class="btn btn-danger">Delete</a> <!-- Corrected to use 'Id' -->
                 </td>
             </tr>
         }
