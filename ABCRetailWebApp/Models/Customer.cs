@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// File: Models/Customer.cs
+using System.ComponentModel.DataAnnotations;
 
 namespace ABCRetailWebApp.Models
 {
