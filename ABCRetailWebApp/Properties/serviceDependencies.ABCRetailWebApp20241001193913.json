@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "cosmosdb1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.DocumentDB/databaseAccounts/abcretailwebappaccount",
+      "type": "cosmosdb.azure",
+      "connectionId": "ConnectionStrings:CosmosDB",
+      "dynamicId": null
+    },
+    "storage1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/abcretailwebappstorage67",
+      "type": "storage.azure",
+      "connectionId": "ConnectionStrings:BlobStorage",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/abcretailwebappdbserver/databases/ABCRetailWebApp_db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:ServiceBus",
+      "dynamicId": null
+    }
+  }
+}
