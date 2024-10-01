@@ -26,7 +26,7 @@
             <tr>
                 <td>@product.Name</td>
                 <td>@product.Description</td>
-                <td>@product.Price.ToString("C")</td> <!-- Display price in currency format -->
+                <td>@product.Price.ToString("C")</td>
                 <td>
                     @if (!string.IsNullOrEmpty(product.ImageUrl))
                     {
@@ -38,8 +38,8 @@
                     }
                 </td>
                 <td>
-                    <a asp-action="EditProduct" asp-route-id="@product.id" class="btn btn-warning">Edit</a> <!-- Corrected to use 'Id' -->
-                    <a asp-action="DeleteProduct" asp-route-id="@product.id" class="btn btn-danger">Delete</a> <!-- Corrected to use 'Id' -->
+                    <a href="@Url.RouteUrl("EditProductRoute", new { id = product.id })" class="btn btn-warning">Edit</a>
+                    <a href="@Url.RouteUrl("DeleteProductRoute", new { id = product.id })" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }
